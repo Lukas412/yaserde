@@ -14,6 +14,13 @@ pub fn from_str<T: YaDeserialize>(s: &str) -> Result<T, String> {
   from_reader(s.as_bytes())
 }
 
+pub fn from_file<P: AsRef<Path>, T: YaDeserialize>(path: &P) -> Result<T, String> {
+  match File::open(path) {
+    Ok(file) => from_reader(file),
+    Err(error) => Err(error.to_string()),
+  }
+}
+
 pub fn from_reader<R: Read, T: YaDeserialize>(reader: R) -> Result<T, String> {
   <T as YaDeserialize>::deserialize(&mut Deserializer::new_from_reader(reader))
 }
