@@ -5,24 +5,37 @@ use std::fs::File;
 use std::io::Read;
 use std::path::Path;
 
+use error_stack::{report, ResultExt};
 use xml::name::OwnedName;
 use xml::reader::{EventReader, ParserConfig, XmlEvent};
 
+use crate::errors::de::DeserializeError;
+use crate::errors::de::file::FileDeserializeError;
+use crate::errors::de::string::StringDeserializeError;
+use crate::errors::string::StringError;
 use crate::YaDeserialize;
 
-pub fn from_str<T: YaDeserialize>(s: &str) -> Result<T, String> {
-  from_reader(s.as_bytes())
+pub fn from_str<T: YaDeserialize>(s: &str) -> error_stack::Result<T, StringDeserializeError> {
+  from_reader(s.as_bytes()).change_context(StringDeserializeError::new(s.to_owned()))
 }
 
-pub fn from_file<P: AsRef<Path>, T: YaDeserialize>(path: &P) -> Result<T, String> {
+pub fn from_file<P: AsRef<Path>, T: YaDeserialize>(path: &P) -> error_stack::Result<T, FileDeserializeError> {
   match File::open(path) {
-    Ok(file) => from_reader(file),
-    Err(error) => Err(error.to_string()),
+    Ok(file) => {
+      from_reader(file)
+        .change_context(FileDeserializeError::new(path))
+    }
+    Err(error) => {
+      Err(report!(error)
+        .change_context(FileDeserializeError::new(path)))
+    }
   }
 }
 
-pub fn from_reader<R: Read, T: YaDeserialize>(reader: R) -> Result<T, String> {
-  <T as YaDeserialize>::deserialize(&mut Deserializer::new_from_reader(reader))
+pub fn from_reader<R: Read, T: YaDeserialize>(reader: R) -> error_stack::Result<T, DeserializeError> {
+  YaDeserialize::deserialize(&mut Deserializer::new_from_reader(reader))
+    .map_err(StringError::new_report)
+    .change_context(DeserializeError::default())
 }
 
 pub struct Deserializer<R: Read> {
