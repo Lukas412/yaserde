@@ -1,9 +1,11 @@
-use proc_macro2::{token_stream::IntoIter, Delimiter, Ident, TokenStream, TokenTree};
-use quote::quote;
 use std::collections::BTreeMap;
+
+use proc_macro2::{Delimiter, Ident, token_stream::IntoIter, TokenStream, TokenTree};
+use quote::quote;
+use syn::__private::bool;
 use syn::Attribute;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, Default, PartialEq, Clone)]
 pub struct YaSerdeAttribute {
   pub attribute: bool,
   pub default: Option<String>,
@@ -19,7 +21,7 @@ pub struct YaSerdeAttribute {
 
 fn get_value(iter: &mut IntoIter) -> Option<String> {
   if let (Some(TokenTree::Punct(operator)), Some(TokenTree::Literal(value))) =
-    (iter.next(), iter.next())
+  (iter.next(), iter.next())
   {
     if operator.as_char() == '=' {
       Some(value.to_string().replace('"', ""))
@@ -33,16 +35,7 @@ fn get_value(iter: &mut IntoIter) -> Option<String> {
 
 impl YaSerdeAttribute {
   pub fn parse(attrs: &[Attribute]) -> YaSerdeAttribute {
-    let mut attribute = false;
-    let mut flatten = false;
-    let mut default = None;
-    let mut default_namespace = None;
-    let mut namespaces = BTreeMap::new();
-    let mut prefix = None;
-    let mut rename = None;
-    let mut skip_serializing = false;
-    let mut skip_serializing_if = None;
-    let mut text = false;
+    let mut attribute = YaSerdeAttribute::default();
 
     for attr in attrs.iter().filter(|a| a.path.is_ident("yaserde")) {
       let mut attr_iter = attr.clone().tokens.into_iter();
@@ -51,65 +44,58 @@ impl YaSerdeAttribute {
           let mut attr_iter = group.stream().into_iter();
 
           while let Some(item) = attr_iter.next() {
-            if let TokenTree::Ident(ident) = item {
-              match ident.to_string().as_str() {
-                "attribute" => {
-                  attribute = true;
-                }
-                "default" => {
-                  default = get_value(&mut attr_iter);
-                }
-                "default_namespace" => {
-                  default_namespace = get_value(&mut attr_iter);
-                }
-                "flatten" => {
-                  flatten = true;
-                }
-                "namespace" => {
-                  if let Some(namespace) = get_value(&mut attr_iter) {
-                    let splitted: Vec<&str> = namespace.split(": ").collect();
-                    if splitted.len() == 2 {
-                      namespaces.insert(Some(splitted[0].to_owned()), splitted[1].to_owned());
-                    }
-                    if splitted.len() == 1 {
-                      namespaces.insert(None, splitted[0].to_owned());
-                    }
-                  }
-                }
-                "prefix" => {
-                  prefix = get_value(&mut attr_iter);
-                }
-                "rename" => {
-                  rename = get_value(&mut attr_iter);
-                }
-                "skip_serializing" => {
-                  skip_serializing = true;
-                }
-                "skip_serializing_if" => {
-                  skip_serializing_if = get_value(&mut attr_iter);
-                }
-                "text" => {
-                  text = true;
-                }
-                _ => {}
-              }
-            }
+            attribute.set_value(item, &mut attr_iter)
           }
         }
       }
     }
 
-    YaSerdeAttribute {
-      attribute,
-      default,
-      default_namespace,
-      flatten,
-      namespaces,
-      prefix,
-      rename,
-      skip_serializing,
-      skip_serializing_if,
-      text,
+    attribute
+  }
+
+  fn set_value(&mut self, item: TokenTree, attr_iter: &mut IntoIter) {
+    if let TokenTree::Ident(ident) = item {
+      match ident.to_string().as_str() {
+        "attribute" => {
+          self.attribute = true;
+        }
+        "default" => {
+          self.default = get_value(attr_iter);
+        }
+        "default_namespace" => {
+          self.default_namespace = get_value(attr_iter);
+        }
+        "flatten" => {
+          self.flatten = true;
+        }
+        "namespace" => {
+          if let Some(namespace) = get_value(attr_iter) {
+            let splitted: Vec<&str> = namespace.split(": ").collect();
+            if splitted.len() == 2 {
+              self.namespaces.insert(Some(splitted[0].to_owned()), splitted[1].to_owned());
+            }
+            if splitted.len() == 1 {
+              self.namespaces.insert(None, splitted[0].to_owned());
+            }
+          }
+        }
+        "prefix" => {
+          self.prefix = get_value(attr_iter);
+        }
+        "rename" => {
+          self.rename = get_value(attr_iter);
+        }
+        "skip_serializing" => {
+          self.skip_serializing = true;
+        }
+        "skip_serializing_if" => {
+          self.skip_serializing_if = get_value(attr_iter);
+        }
+        "text" => {
+          self.text = true;
+        }
+        _ => {}
+      }
     }
   }
 
