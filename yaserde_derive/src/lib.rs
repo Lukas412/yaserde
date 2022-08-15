@@ -3,11 +3,13 @@
 // Required for Rust < 1.42
 extern crate proc_macro;
 
+use proc_macro::TokenStream;
+
 mod common;
 mod de;
 mod ser;
 
-use proc_macro::TokenStream;
+mod tests;
 
 #[proc_macro_derive(YaDeserialize, attributes(yaserde))]
 pub fn derive_deserialize(input: TokenStream) -> TokenStream {
