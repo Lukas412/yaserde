@@ -69,10 +69,9 @@ impl<R: Read> Deserializer<R> {
       self.peeked = Some(self.inner_next()?);
     }
 
-    if let Some(ref next) = self.peeked {
-      Ok(next)
-    } else {
-      Err("unable to peek next item".into())
+    match &self.peeked {
+      Some(next) => Ok(next),
+      None => Err("unable to peek next item".into())
     }
   }
 
