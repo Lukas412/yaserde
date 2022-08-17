@@ -69,10 +69,8 @@ impl<R: Read> Deserializer<R> {
       self.peeked = Some(self.inner_next()?);
     }
 
-    match &self.peeked {
-      Some(next) => Ok(next),
-      None => Err("unable to peek next item".into())
-    }
+    self.peeked.as_ref()
+      .ok_or("unable to peek next item".to_owned())
   }
 
   pub fn inner_next(&mut self) -> Result<XmlEvent, String> {
