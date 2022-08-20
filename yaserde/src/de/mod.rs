@@ -76,27 +76,24 @@ impl<R: Read> Deserializer<R> {
   pub fn inner_next(&mut self) -> Result<XmlEvent, String> {
     loop {
       match self.reader.next() {
-        Ok(next) => {
-          match next {
-            XmlEvent::StartDocument { .. }
-            | XmlEvent::ProcessingInstruction { .. }
-            | XmlEvent::Comment(_) => { /* skip */ }
-            other => return Ok(other),
-          }
+        Ok(XmlEvent::StartDocument { .. }
+           | XmlEvent::ProcessingInstruction { .. }
+           | XmlEvent::Comment(_)) => {
+          continue;
         }
-        Err(msg) => {
-          return Err(msg.msg().to_string());
+        next => {
+          return next.map_err(|msg| msg.msg().to_string());
         }
       }
     }
   }
 
   pub fn next_event(&mut self) -> Result<XmlEvent, String> {
-    let next_event = if let Some(peeked) = self.peeked.take() {
-      peeked
-    } else {
-      self.inner_next()?
-    };
+    let next_event =
+      match self.peeked.take() {
+        Some(peeked) => peeked,
+        None => self.inner_next()?
+      };
     match next_event {
       XmlEvent::StartElement { .. } => {
         self.depth += 1;
