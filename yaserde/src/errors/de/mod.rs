@@ -1,11 +1,17 @@
 use std::fmt::{Display, Formatter};
 use error_stack::{Context, Report, report};
 
-pub mod string;
-pub mod file;
-pub mod unexpected_event;
-pub mod element_tags;
-pub mod peek;
+mod string;
+mod file;
+mod unexpected_event;
+mod element_tags;
+mod peek;
+
+pub use string::StringDeserializeError;
+pub use file::FileDeserializeError;
+pub use unexpected_event::UnexpectedEventError;
+pub use element_tags::ElementTagsError;
+pub use peek::CouldNotPeekError;
 
 #[derive(Debug, Default)]
 pub struct DeserializeError;

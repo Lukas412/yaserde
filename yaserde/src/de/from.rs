@@ -5,10 +5,7 @@ use std::path::Path;
 use error_stack::{IntoReport, ResultExt};
 
 use crate::de::Deserializer;
-use crate::errors::de::DeserializeError;
-use crate::errors::de::file::FileDeserializeError;
-use crate::errors::de::string::StringDeserializeError;
-use crate::errors::string::StringError;
+use crate::errors::de::{DeserializeError, FileDeserializeError, StringDeserializeError};
 use crate::YaDeserialize;
 
 pub fn from_str<T: YaDeserialize>(s: &str) -> error_stack::Result<T, StringDeserializeError> {
@@ -25,6 +22,5 @@ pub fn from_file<P: AsRef<Path>, T: YaDeserialize>(path: &P) -> error_stack::Res
 
 pub fn from_reader<R: Read, T: YaDeserialize>(reader: R) -> error_stack::Result<T, DeserializeError> {
   YaDeserialize::deserialize(&mut Deserializer::new_from_reader(reader))
-    .map_err(StringError::new_report)
     .change_context(DeserializeError::default())
 }

@@ -7,10 +7,7 @@ use xml::name::OwnedName;
 use xml::namespace::Namespace;
 use xml::reader::XmlEvent;
 
-use crate::errors::de::DeserializeError;
-use crate::errors::de::element_tags::ElementTagsError;
-use crate::errors::de::peek::CouldNotPeekError;
-use crate::errors::de::unexpected_event::UnexpectedEventError;
+use crate::errors::de::{DeserializeError, ElementTagsError, CouldNotPeekError, UnexpectedEventError};
 
 pub struct Deserializer<R: Read> {
   depth: usize,
