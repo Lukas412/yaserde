@@ -3,6 +3,9 @@ use error_stack::{Context, Report, report};
 
 pub mod string;
 pub mod file;
+pub mod unexpected_event;
+pub mod element_tags;
+pub mod peek;
 
 #[derive(Debug, Default)]
 pub struct DeserializeError;
