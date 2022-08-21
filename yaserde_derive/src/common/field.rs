@@ -44,12 +44,12 @@ impl YaSerdeField {
     self.attributes.skip_serializing
   }
 
-  pub fn get_value_label(&self) -> Option<syn::Ident> {
+  pub fn get_value_label(&self) -> Option<Ident> {
     self
       .syn_field
       .ident
       .clone()
-      .map(|ident| syn::Ident::new(&format!("__{}_value", ident.unraw()), ident.span()))
+      .map(|ident| Ident::new(&format!("__{}_value", ident.unraw()), ident.span()))
   }
 
   pub fn renamed_label_without_namespace(&self) -> String {
@@ -257,8 +257,8 @@ impl From<&syn::PathSegment> for Field {
   }
 }
 
-impl From<Field> for proc_macro2::TokenStream {
-  fn from(field: Field) -> proc_macro2::TokenStream {
+impl From<Field> for TokenStream {
+  fn from(field: Field) -> TokenStream {
     match field {
       Field::FieldString => quote! { ::std::string::String },
       Field::FieldBool => quote! { bool },
