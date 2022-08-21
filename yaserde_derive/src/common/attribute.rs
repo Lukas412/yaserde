@@ -20,16 +20,13 @@ pub struct YaSerdeAttribute {
 }
 
 fn get_value(iter: &mut IntoIter) -> Option<String> {
-  if let (Some(TokenTree::Punct(operator)), Some(TokenTree::Literal(value))) =
-  (iter.next(), iter.next())
-  {
-    if operator.as_char() == '=' {
+  match (iter.next(), iter.next()) {
+    (Some(TokenTree::Punct(operator)),
+      Some(TokenTree::Literal(value)))
+    if operator.as_char() == '=' => {
       Some(value.to_string().replace('"', ""))
-    } else {
-      None
     }
-  } else {
-    None
+    _ => None
   }
 }
 
