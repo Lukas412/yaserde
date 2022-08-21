@@ -343,7 +343,7 @@ pub fn parse(
       ) -> ::std::result::Result<Self, ::std::string::String> {
         let (named_element, struct_namespace) =
           if let ::yaserde::__xml::reader::XmlEvent::StartElement { name, .. } = reader.peek()?.to_owned() {
-            (name.local_name.to_owned(), name.namespace.clone())
+            (name.local_name, name.namespace)
           } else {
             (::std::string::String::from(#root), ::std::option::Option::None)
           };
