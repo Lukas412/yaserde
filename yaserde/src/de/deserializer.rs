@@ -2,7 +2,9 @@ use std::io::Read;
 
 use error_stack::{IntoReport, ResultExt};
 use xml::{EventReader, ParserConfig};
+use xml::attribute::OwnedAttribute;
 use xml::name::OwnedName;
+use xml::namespace::Namespace;
 use xml::reader::XmlEvent;
 
 use crate::errors::de::DeserializeError;
@@ -86,6 +88,24 @@ impl<R: Read> Deserializer<R> {
     Ok(next_event)
   }
 
+  pub fn next_start_element_event(&mut self) -> error_stack::Result<(OwnedName, Namespace, Vec<OwnedAttribute>), DeserializeError> {
+    match self.next_event()? {
+      XmlEvent::StartElement { name, namespace, attributes } =>
+        Ok((name, namespace, attributes)),
+      event => Err(UnexpectedEventError::new_report(event))
+        .change_context(DeserializeError::default())
+    }
+  }
+
+  pub fn next_end_element_event(&mut self) -> error_stack::Result<OwnedName, DeserializeError> {
+    match self.next_event()? {
+      XmlEvent::EndElement { name } =>
+        Ok(name),
+      event => Err(UnexpectedEventError::new_report(event))
+        .change_context(DeserializeError::default())
+    }
+  }
+
   pub fn skip_element(&mut self, mut cb: impl FnMut(&XmlEvent)) -> error_stack::Result<(), DeserializeError> {
     let depth = self.depth;
 
@@ -104,26 +124,14 @@ impl<R: Read> Deserializer<R> {
     &mut self,
     f: F,
   ) -> error_stack::Result<T, DeserializeError> {
-    match self.next_event()? {
-      XmlEvent::StartElement { name, .. } => {
-        let result = f(self)?;
-        self.expect_end_element(name)?;
-        Ok(result)
-      }
-      event => Err(UnexpectedEventError::new_report(event))
-        .change_context(DeserializeError::default())
-    }
+    let (start_name, _, _) = self.next_start_element_event()?;
+    let result = f(self)?;
+    self.expect_end_element(start_name)?;
+    Ok(result)
   }
 
   pub fn expect_end_element(&mut self, start_name: OwnedName) -> error_stack::Result<(), DeserializeError> {
-    let end_name =
-      match self.next_event()? {
-        XmlEvent::EndElement { name, .. } => name,
-        event => {
-          return Err(UnexpectedEventError::new_report(event))
-            .change_context(DeserializeError::default());
-        }
-      };
+    let end_name = self.next_end_element_event()?;
 
     if end_name != start_name {
       return Err(ElementTagsError::new_report(start_name, end_name))
