@@ -6,3 +6,4 @@ pub use deserializer::Deserializer;
 
 mod from;
 mod deserializer;
+mod common;
