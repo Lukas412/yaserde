@@ -85,7 +85,7 @@ impl<R: Read> Deserializer<R> {
     Ok(next_event)
   }
 
-  pub fn next_start_element_event(&mut self) -> error_stack::Result<(OwnedName, Namespace, Vec<OwnedAttribute>), DeserializeError> {
+  pub fn expect_next_start_element_event(&mut self) -> error_stack::Result<(OwnedName, Namespace, Vec<OwnedAttribute>), DeserializeError> {
     match self.next_event()? {
       XmlEvent::StartElement { name, namespace, attributes } =>
         Ok((name, namespace, attributes)),
@@ -94,7 +94,7 @@ impl<R: Read> Deserializer<R> {
     }
   }
 
-  pub fn next_end_element_event(&mut self) -> error_stack::Result<OwnedName, DeserializeError> {
+  pub fn expect_next_end_element_event(&mut self) -> error_stack::Result<OwnedName, DeserializeError> {
     match self.next_event()? {
       XmlEvent::EndElement { name } =>
         Ok(name),
@@ -121,14 +121,14 @@ impl<R: Read> Deserializer<R> {
     &mut self,
     f: F,
   ) -> error_stack::Result<T, DeserializeError> {
-    let (start_name, _, _) = self.next_start_element_event()?;
+    let (start_name, _, _) = self.expect_next_start_element_event()?;
     let result = f(self)?;
     self.expect_end_element(start_name)?;
     Ok(result)
   }
 
   pub fn expect_end_element(&mut self, start_name: OwnedName) -> error_stack::Result<(), DeserializeError> {
-    let end_name = self.next_end_element_event()?;
+    let end_name = self.expect_next_end_element_event()?;
 
     if end_name != start_name {
       return Err(ElementTagsError::new_report(start_name, end_name))
