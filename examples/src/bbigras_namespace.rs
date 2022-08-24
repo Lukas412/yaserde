@@ -1,5 +1,10 @@
 // related to issue https://github.com/media-io/yaserde/issues/15
 
+use std::io::Read;
+use yaserde::de::Deserializer;
+use yaserde::errors::de::DeserializeError;
+use yaserde::YaDeserialize;
+
 #[derive(YaDeserialize, Default, Debug, PartialEq)]
 #[yaserde(
   prefix = "ss",
@@ -11,6 +16,24 @@
 struct Workbook {
   #[yaserde(rename = "Worksheet")]
   worksheet: Worksheet,
+}
+
+impl YaDeserialize for Workbook {
+  fn deserialize<R: Read>(reader: &mut Deserializer<R>) -> error_stack::ext::result::Result<Self, DeserializeError> {
+    let (name, namespaces, attributes) = reader.expect_next_start_element_event()?;
+
+    // Start Tag => OwnedName
+
+    // Attributes => Vec<OwnedAttribute>
+
+    // Namespaces => Namespace
+
+    // Children
+
+    let name = reader.expect_next_end_element_event();
+
+    // End Tag => OwnedName
+  }
 }
 
 #[derive(YaDeserialize, Default, Debug, PartialEq)]
