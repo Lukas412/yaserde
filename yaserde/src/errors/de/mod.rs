@@ -6,12 +6,14 @@ mod file;
 mod unexpected_event;
 mod element_tags;
 mod peek;
+mod element_name;
 
 pub use string::StringDeserializeError;
 pub use file::FileDeserializeError;
 pub use unexpected_event::UnexpectedEventError;
 pub use element_tags::ElementTagsError;
 pub use peek::CouldNotPeekError;
+pub use element_name::ElementNameError;
 
 #[derive(Debug, Default)]
 pub struct DeserializeError;

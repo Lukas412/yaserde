@@ -1,28 +1,40 @@
 // related to issue https://github.com/media-io/yaserde/issues/15
 
 use std::io::Read;
+use yaserde::__xml::name::OwnedName;
+
 use yaserde::de::Deserializer;
 use yaserde::errors::de::DeserializeError;
 use yaserde::YaDeserialize;
 
-#[derive(YaDeserialize, Default, Debug, PartialEq)]
-#[yaserde(
-  prefix = "ss",
-  namespace = "x: urn:schemas-microsoft-com:office:excel",
-  namespace = "ss: urn:schemas-microsoft-com:office:spreadsheet",
-  namespace = "o: urn:schemas-microsoft-com:office:office",
-  namespace = "html: http://www.w3.org/TR/REC-html40"
-)]
+#[derive(Default, Debug, PartialEq)]
+// #[yaserde(
+// prefix = "ss",
+// namespace = "x: urn:schemas-microsoft-com:office:excel",
+// namespace = "ss: urn:schemas-microsoft-com:office:spreadsheet",
+// namespace = "o: urn:schemas-microsoft-com:office:office",
+// namespace = "html: http://www.w3.org/TR/REC-html40"
+// )]
 struct Workbook {
-  #[yaserde(rename = "Worksheet")]
   worksheet: Worksheet,
 }
 
 impl YaDeserialize for Workbook {
-  fn deserialize<R: Read>(reader: &mut Deserializer<R>) -> error_stack::ext::result::Result<Self, DeserializeError> {
+  fn deserialize<R: Read>(reader: &mut Deserializer<R>) -> error_stack::Result<Self, DeserializeError> {
     let (name, namespaces, attributes) = reader.expect_next_start_element_event()?;
 
     // Start Tag => OwnedName
+    {
+      if matches!(name.local_name.as_ref(), "Workbook") {
+        Err()
+      } else if matches!(name.namespace.as_ref(), Some("urn:schemas-microsoft-com:office:spreadsheet")) {
+        Err()
+      } else if matches!(name.prefix.as_ref(), Some("ss")) {
+        Err()
+      } else {
+        Ok(())
+      }
+    }
 
     // Attributes => Vec<OwnedAttribute>
 
@@ -38,11 +50,11 @@ impl YaDeserialize for Workbook {
 
 #[derive(YaDeserialize, Default, Debug, PartialEq)]
 #[yaserde(
-  prefix = "ss",
-  namespace = "x: urn:schemas-microsoft-com:office:excel",
-  namespace = "ss: urn:schemas-microsoft-com:office:spreadsheet",
-  namespace = "o: urn:schemas-microsoft-com:office:office",
-  namespace = "html: http://www.w3.org/TR/REC-html40"
+prefix = "ss",
+namespace = "x: urn:schemas-microsoft-com:office:excel",
+namespace = "ss: urn:schemas-microsoft-com:office:spreadsheet",
+namespace = "o: urn:schemas-microsoft-com:office:office",
+namespace = "html: http://www.w3.org/TR/REC-html40"
 )]
 struct Worksheet {
   #[yaserde(rename = "Table")]
@@ -53,11 +65,11 @@ struct Worksheet {
 
 #[derive(YaDeserialize, Default, Debug, PartialEq)]
 #[yaserde(
-  prefix = "ss",
-  namespace = "x: urn:schemas-microsoft-com:office:excel",
-  namespace = "ss: urn:schemas-microsoft-com:office:spreadsheet",
-  namespace = "o: urn:schemas-microsoft-com:office:office",
-  namespace = "html: http://www.w3.org/TR/REC-html40"
+prefix = "ss",
+namespace = "x: urn:schemas-microsoft-com:office:excel",
+namespace = "ss: urn:schemas-microsoft-com:office:spreadsheet",
+namespace = "o: urn:schemas-microsoft-com:office:office",
+namespace = "html: http://www.w3.org/TR/REC-html40"
 )]
 struct Table {
   #[yaserde(attribute, rename = "ExpandedColumnCount", prefix = "ss")]
@@ -81,11 +93,11 @@ struct Table {
 
 #[derive(YaDeserialize, Default, Debug, PartialEq)]
 #[yaserde(
-  prefix = "ss",
-  namespace = "x: urn:schemas-microsoft-com:office:excel",
-  namespace = "ss: urn:schemas-microsoft-com:office:spreadsheet",
-  namespace = "o: urn:schemas-microsoft-com:office:office",
-  namespace = "html: http://www.w3.org/TR/REC-html40"
+prefix = "ss",
+namespace = "x: urn:schemas-microsoft-com:office:excel",
+namespace = "ss: urn:schemas-microsoft-com:office:spreadsheet",
+namespace = "o: urn:schemas-microsoft-com:office:office",
+namespace = "html: http://www.w3.org/TR/REC-html40"
 )]
 struct Row {
   #[yaserde(attribute, rename = "AutoFitHeight", prefix = "ss")]
